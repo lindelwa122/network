@@ -66,6 +66,20 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
+
+@csrf_exempt
+def new_post(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        data = json.loads(request.body)
+        post = Post(user=request.user, content=data.get("post", ""))
+        post.save()
+
+        return JsonResponse({"message": "Success"}, status=200)
+
+    else:
+        return render(request, "network/new_post.html")
+
 @csrf_exempt
 @login_required(login_url="/login")
 def post(request):

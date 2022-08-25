@@ -24,7 +24,7 @@
                         <a class="nav-link" href="#"><strong>{{ user.username }}</strong></a>
                     </li>
                     <li class="nav-item">
-                        <div class="nav-link" id="new-post-link">New Post</div>
+                        <a class="nav-link" href="{% url 'new_post' %}">New Post</a>
                     </li>
                 {% endif %}
                 <li class="nav-item">

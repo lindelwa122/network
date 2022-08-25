@@ -1,0 +1,69 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+<div class="container">
+    <h1>New Post</h1>
+    <form action="">
+        <div id="charCount">0 characters</div>
+        <div class="mb-3">
+            <textarea class="form-control" placeholder="What's on your mind?" rows="7"></textarea>
+        </div>
+        <div class="mb-3">
+            <div id="post-btn">
+                <input type="submit" id="submit" class="btn btn-primary" value="POST" />
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock%}
+
+{% block script %}
+<script>
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        const textarea = document.querySelector("textarea");
+
+        textarea.oninput = () => {
+            document.querySelector("#charCount").textContent = `${textarea.value.length} characters`
+       }
+
+       document.querySelector("form").onsubmit = event => {
+            event.preventDefault();
+            const result = document.createElement("div");
+            result.role = "alert";
+            const btn = "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+
+            if (textarea.value.length > 0) {
+                const aj = new XMLHttpRequest;
+
+                aj.onreadystatechange = () => {
+                    if (aj.readyState === 4 && aj.status === 200) {
+                        result.classList = "alert alert-success alert-dismissible fade show";
+                        result.innerHTML = `<strong>Posted successfully!</strong>${btn}`;
+                        textarea.value = "";
+                    }
+                    else if (aj.readyState === 4 && aj.status !== 200) {
+                        result.classList = "alert alert-danger alert-dismissible fade show";
+                        result.innerHTML = `<strong>Something went wrong!</strong>${btn}`;
+                    }
+                }
+
+                const data = JSON.stringify({
+                    "post": document.querySelector("textarea").value 
+                });
+
+                aj.open("POST", "/new", true);
+                aj.setRequestHeader("Data-type", "json");
+                aj.setRequestHeader("Content-type", "application/json");
+                aj.send(data);
+            }
+            else {
+                result.classList = "alert alert-danger alert-dismissible fade show";
+                result.innerHTML = `<strong>Something went wrong!</strong>${btn}`;
+                textarea.placeholder = "What's on your mind? (Message must have more than 0 characters)";
+            }
+            document.querySelector(".container").append(result);
+       }
+    })
+</script>
+{% endblock %}

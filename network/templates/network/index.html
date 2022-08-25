@@ -2,8 +2,98 @@
 
 {% block body %}
     
-    <div id="new-post-view"></div>
-    <div id="posts-view"></div>
-    <div id="profile-view"></div>
+    <div class="view" id="new-post-view"></div>
+    <div class="view" id="posts-view"></div>
+    <div class="view" id="profile-view"></div>
 
+{% endblock %}
+
+{% block script %}
+<script type="text/babel">
+
+    document.querySelector("#new-post-link").onclick = () => {
+        clear();
+        ReactDOM.render(<NewPost />, document.querySelector("#new-post-view"));
+    }
+
+    function clear() {
+        document.querySelectorAll(".view").forEach(view => {
+            ReactDOM.unmountComponentAtNode(view);
+        })
+    }
+
+    function NewPost() {
+
+        const [charCount, setCharCount] = React.useState(0);
+
+        function updateCount(event) {
+            setCharCount(document.querySelector("textarea").value.length);
+        }
+
+        function postText() {
+            
+            const aj = new XMLHttpRequest;
+
+            aj.onreadystatechange = () => {
+                if (aj.readyState == 4 && aj.status != 200) {
+                    const error = document.createElement("div");
+                    error.classList = "alert alert-danger alert-dismissible fade show";
+                    error.role = "alert";
+                    const btn = "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                    error.innerHTML = `<strong>Something went wrong!</strong>${btn}`;
+                    document.querySelector(".container").append(error);
+                }
+                else if (aj.readyState == 4 && aj.status == 200) {
+                    const success = document.createElement("div");
+                    success.classList = "alert alert-success alert-dismissible fade show";
+                    success.role = "alert";
+                    const btn = "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                    success.innerHTML = `<strong>Posted successfully!</strong>${btn}`;
+                    document.querySelector(".container").append(success);
+                    document.querySelector("textarea").value = "";
+                    updateCount();
+                }
+            }
+
+            const data = JSON.stringify({
+               "post": document.querySelector("textarea").value 
+            });
+
+            aj.open("POST", "/post/new", true);
+            aj.setRequestHeader("Data-type", "json");
+            aj.setRequestHeader("Content-type", "application/json");
+            aj.send(data);
+        }
+
+        document.onsubmit = event => {
+            event.preventDefault();
+            if (document.querySelector("textarea").value.length === 0) {
+                document.querySelector("textarea").placeholder = "What's on your mind? (POST MUST NOT BE EMPTY)";
+            }
+            else {
+                postText();
+            }
+        }
+
+        history.pushState({}, "", "/post/new");
+
+        return (
+            <div className="container">
+                <h1>New Post</h1>
+                <form action="">
+                    <div id="charCount">{charCount} characters.</div>
+                    <div className="mb-3">
+                        <textarea className="form-control" placeholder="What's on your mind?" rows="7" onInput={updateCount}></textarea>
+                    </div>
+                    <div className="mb-3">
+                        <div id="post-btn">
+                            <input type="submit" id="submit" className="btn btn-primary" value="POST" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+        )
+    }
+    
+</script>
 {% endblock %}

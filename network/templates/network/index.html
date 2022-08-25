@@ -1,6 +1,22 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
+
+    <div class="container">
+        <h1>All Posts</h1>
+        <div class="row">
+            {% for post in all_posts %}
+                <div class="wrapper">
+                    <div class="header"><strong>{{ post.user }}</strong></div>
+                    <div class="main-info">{{ post.content }}</div>
+                    <div class="extra-info">
+                        <div>{{ post.timestamp }}</div>
+                        <div>{{ post.likes }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
     
     <div class="view" id="new-post-view"></div>
     <div class="view" id="posts-view"></div>

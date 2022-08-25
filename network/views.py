@@ -12,7 +12,9 @@ from .forms import *
 
 
 def index(request):
-    return render(request, "network/index.html")
+    return render(request, "network/index.html", {
+        "all_posts": Post.objects.order_by("timestamp").all()
+    })
 
 
 def login_view(request):
@@ -76,17 +78,3 @@ def post(request):
         post.save()
 
         return JsonResponse({"message": "Success"}, status=200)
-
-
-def posts(request):
-    if request.method == "GET":
-        all_posts = list(Post.objects.order_by("timestamp").all().values())
-
-        # k = all_posts["data"]
-
-        for e in all_posts:
-            e["username"] = User.objects.get(id=e["user_id"]).username
-        
-        return JsonResponse({
-            "data": all_posts
-        })

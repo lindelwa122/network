@@ -16,6 +16,7 @@ class Post(models.Model):
     user = models.ForeignKey(User, models.CASCADE, "post_user")
     content = models.TextField(max_length=2000, blank=False, validators=[validate_post])
     likes = models.IntegerField(default=0)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"{self.user} posted: {self.content}"

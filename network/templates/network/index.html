@@ -16,6 +16,43 @@
         ReactDOM.render(<NewPost />, document.querySelector("#new-post-view"));
     }
 
+    document.querySelector("#all-posts-link").onclick = () => {
+        clear();
+        ReactDOM.render(<AllPosts />, document.querySelector("#posts-view"));
+    }
+
+    function AllPosts() {
+        fetch("/posts/all")
+        .then(response => response.json())
+        .then(data => {
+            data.data.forEach(post => {
+                const wrapper = document.createElement("div");
+                wrapper.classList = "wrapper";
+                const header = document.createElement('div');
+                header.innerHTML = `<div><strong>${post.username}</strong></div>`
+                const mainInfo = document.createElement("div");
+                mainInfo.className = "main-info";
+                mainInfo.textContent = post.content;
+                const extraInfo = document.createElement("div");
+                extraInfo.className = "extra-info";
+                extraInfo.innerHTML = `<div><i>${post.timestamp}</i></div><div>${post.likes}</div>`;
+                wrapper.append(header);
+                wrapper.append(mainInfo);
+                wrapper.append(extraInfo);
+                document.querySelector(".row").append(wrapper);
+            });
+        });
+
+        history.pushState({}, "", "/posts/all")
+
+        return (
+            <div className="container">
+                <h1>All Posts</h1>
+                <div className="row"></div>
+            </div>
+        )
+    }
+
     function clear() {
         document.querySelectorAll(".view").forEach(view => {
             ReactDOM.unmountComponentAtNode(view);

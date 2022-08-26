@@ -24,3 +24,6 @@ class Post(models.Model):
 class Connections(models.Model):
     user = models.ForeignKey(User, models.CASCADE, "followed")
     follower = models.ForeignKey(User, models.CASCADE, "follower")
+
+    def __str__(self) -> str:
+         return f"{self.follower} follows {self.user}"

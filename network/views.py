@@ -91,22 +91,38 @@ def posts(request):
             "data": all_posts
         })
 
+
+@csrf_exempt
 def profile(request, username):
     user = User.objects.get(username=username)
-    followers = Connections.objects.filter(user=user).count()
-    following = Connections.objects.filter(follower=user).count()
 
-    if request.user.is_authenticated:
-        con = Connections.objects.filter(user=request.user, follower=user)
-        f = Connections.objects.filter(user=user, follower=request.user)
+    if request.method == "GET":
+        followers = Connections.objects.filter(user=user).count()
+        following = Connections.objects.filter(follower=user).count()
 
-    posts = Post.objects.filter(user=user)
+        if request.user.is_authenticated:
+            con = Connections.objects.filter(user=request.user, follower=user)
+            f = Connections.objects.filter(user=user, follower=request.user)
 
-    return render(request, "network/profile.html", {
-        "followers": followers,
-        "following": following,
-        "user_profile": request.user == user,
-        "follows_you": len(con) == 1 if request.user.is_authenticated else False,
-        "already_following": len(f) == 1 if request.user.is_authenticated else False,
-        "posts": posts
-    })
+        posts = Post.objects.filter(user=user)
+
+        return render(request, "network/profile.html", {
+            "username": username,
+            "followers": followers,
+            "following": following,
+            "user_profile": request.user == user,
+            "follows_you": len(con) == 1 if request.user.is_authenticated else False,
+            "already_following": len(f) == 1 if request.user.is_authenticated else False,
+            "posts": posts
+        })
+
+    else:
+        data = json.loads(request.body)
+        if data.get("data", "") == "follow":
+            con = Connections(user=user, follower=request.user)
+            con.save()
+        else:
+            con = Connections.objects.get(user=user, follower=request.user)
+            con.delete()
+
+        return JsonResponse({"message": "success"}, status=200)

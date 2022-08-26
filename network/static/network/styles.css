@@ -28,7 +28,7 @@ div#profile {
     justify-content: space-between;
 }
 
-div#profile span {
+div#profile .count {
     font-size: xx-large;
 }
 
@@ -41,4 +41,5 @@ div#profile .btn {
     padding: 10px;
     background-color: #faf9fa;
     border-radius: 5px;
+    margin-bottom: 10px;
 }

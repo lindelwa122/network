@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import User
+from .models import *
 from .forms import *
 
 
@@ -90,3 +90,23 @@ def posts(request):
         return JsonResponse({
             "data": all_posts
         })
+
+def profile(request, username):
+    user = User.objects.get(username=username)
+    followers = Connections.objects.filter(user=user).count()
+    following = Connections.objects.filter(follower=user).count()
+
+    if request.user.is_authenticated:
+        con = Connections.objects.filter(user=request.user, follower=user)
+        f = Connections.objects.filter(user=user, follower=request.user)
+
+    posts = Post.objects.filter(user=user)
+
+    return render(request, "network/profile.html", {
+        "followers": followers,
+        "following": following,
+        "user_profile": request.user == user,
+        "follows_you": len(con) == 1 if request.user.is_authenticated else False,
+        "already_following": len(f) == 1 if request.user.is_authenticated else False,
+        "posts": posts
+    })

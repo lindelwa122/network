@@ -20,3 +20,7 @@ class Post(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user} posted: {self.content}"
+
+class Connections(models.Model):
+    user = models.ForeignKey(User, models.CASCADE, "followed")
+    follower = models.ForeignKey(User, models.CASCADE, "follower")

@@ -1,0 +1,33 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+<div class="container">
+    <h1>{{ user.username }}</h1>
+    <div class="row" id="profile">
+        <div class="col-5 profile-card">
+            <div><span>{{ followers }}</span> Followers</div>
+            <div class="text-center">
+                {% if user.is_authenticated %}
+                    {% if already_following %}
+                        <button class="btn btn-secondary">Following</button>
+                    {% elif not user_profile %}
+                        <button class="btn btn-primary">Follow</button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-5 profile-card">
+            <div><span>{{ following }}</span> Following</div>
+            <div class="text-center">
+                {% if user.is_authenticated %}
+                    {% if follows_you %}
+                        Follows You
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div id="posts"></div>
+</div>
+{% endblock %}

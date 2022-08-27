@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import User
+from .models import *
 from .forms import *
 
 
@@ -66,20 +66,6 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
-
-@csrf_exempt
-def new_post(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        data = json.loads(request.body)
-        post = Post(user=request.user, content=data.get("post", ""))
-        post.save()
-
-        return JsonResponse({"message": "Success"}, status=200)
-
-    else:
-        return render(request, "network/new_post.html")
-
 @csrf_exempt
 @login_required(login_url="/login")
 def post(request):
@@ -89,3 +75,53 @@ def post(request):
         post.save()
 
         return JsonResponse({"message": "Success"}, status=200)
+
+
+def posts(request):
+    if request.method == "GET":
+        all_posts = list(Post.objects.order_by("timestamp").all().values())
+
+        # k = all_posts["data"]
+
+        for e in all_posts:
+            e["username"] = User.objects.get(id=e["user_id"]).username
+        
+        return JsonResponse({
+            "data": all_posts
+        })
+
+
+@csrf_exempt
+def profile(request, username):
+    user = User.objects.get(username=username)
+
+    if request.method == "GET":
+        followers = Connections.objects.filter(user=user).count()
+        following = Connections.objects.filter(follower=user).count()
+
+        if request.user.is_authenticated:
+            con = Connections.objects.filter(user=request.user, follower=user)
+            f = Connections.objects.filter(user=user, follower=request.user)
+
+        posts = Post.objects.filter(user=user)
+
+        return render(request, "network/profile.html", {
+            "username": username,
+            "followers": followers,
+            "following": following,
+            "user_profile": request.user == user,
+            "follows_you": len(con) == 1 if request.user.is_authenticated else False,
+            "already_following": len(f) == 1 if request.user.is_authenticated else False,
+            "posts": posts
+        })
+
+    else:
+        data = json.loads(request.body)
+        if data.get("data", "") == "follow":
+            con = Connections(user=user, follower=request.user)
+            con.save()
+        else:
+            con = Connections.objects.get(user=user, follower=request.user)
+            con.delete()
+
+        return JsonResponse({"message": "success"}, status=200)

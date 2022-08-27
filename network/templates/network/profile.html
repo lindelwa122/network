@@ -1,0 +1,106 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+<div class="container">
+    <h1 id="username">{{ username }}</h1>
+    <div class="row" id="profile">
+        <div class="col-5 profile-card">
+            {% if followers == 1 %}
+                <div><span class="count" id="followers-count">{{ followers }}</span><span id="wording"> Follower</span></div>
+            {% else %}
+                <div><span class="count" id="followers-count">{{ followers }}</span><span id="wording"> Followers</span></div>
+            {% endif %}
+            <div class="text-center">
+                {% if user.is_authenticated %}
+                    {% if already_following %}
+                        <button class="btn btn-secondary" id="unfollow">Following</button>
+                    {% elif not user_profile %}
+                        <button class="btn btn-primary" id="follow">Follow</button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-5 profile-card">
+            <div><span class="count">{{ following }}</span> Following</div>
+            <div class="text-center">
+                {% if user.is_authenticated %}
+                    {% if follows_you %}
+                        Follows You
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <h3>Posts</h3>
+    <div id="posts">
+        {% for post in posts %}
+            {{ post }}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.onclick = event => {
+        if (event.target.id === "follow") {
+            follows("follow");
+        }
+        else if (event.target.id === "unfollow") {
+            follows("unfollow");
+        }
+    }
+
+    function follows(method) {
+        const aj = new XMLHttpRequest;
+        const btn = document.querySelector(`#${method}`);
+
+        aj.onreadystatechange = () => {
+            if (aj.readyState === 4 && aj.status === 200) {
+                btn.innerText = method === "follow" ? "Following" : "Follow";
+                btn.classList = method === "follow" ? "btn btn-secondary" : "btn btn-primary";
+                btn.id = method === "follow" ? "unfollow" : "follow";
+
+                const followersCount = document.querySelector("#followers-count");
+                const wording = document.querySelector("#wording");
+                if (method === "follow") {
+                    followersCount.innerText++;
+                    if (followersCount.innerText == 1) {
+                        wording.innerText = " Follower";
+                    }
+                    else {
+                        wording.innerText = " Followers";
+                    }
+                }
+                else {
+                    followersCount.innerText--;
+                    if (followersCount.innerText == 1) {
+                        wording.innerText = " Follower";
+                    }
+                    else {
+                        wording.innerText = " Followers";
+                    }
+                }
+            }
+            else if (aj.readyState === 4 && aj.status !== 200) {
+                const error = document.createElement("div");
+                error.classList = "alert alert-danger alert-dismissible fade show";
+                error.role = "alert";
+                const btn = "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
+                error.innerHTML = `<strong>Server couldn't process your request. Please try again later!</strong>${btn}`;
+                document.querySelector(".row").append(error);
+            }
+        }
+
+        data = JSON.stringify({
+            "data": method === "follow" ? "follow" : "unfollow"
+        });
+
+        aj.open("PUT", `/${document.querySelector("#username").innerText}`, true);
+        aj.setRequestHeader("Data-type", "json");
+        aj.setRequestHeader("Content-type", "application/json");
+        aj.send(data);
+    }
+</script>
+{% endblock %}

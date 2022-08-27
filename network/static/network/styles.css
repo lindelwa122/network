@@ -5,3 +5,41 @@
 .nav-link {
     cursor: pointer;
 }
+
+.wrapper {
+    width: 100%;
+    border: 1px solid #212529;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    padding: 3px 10px;
+}
+
+.main-info {
+    margin-bottom: 5px;
+}
+
+.extra-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: small;
+}
+
+div#profile {
+    justify-content: space-between;
+}
+
+div#profile .count {
+    font-size: xx-large;
+}
+
+div#profile .btn {
+    width: 80%;
+}
+
+.profile-card {
+    border: 1px solid;
+    padding: 10px;
+    background-color: #faf9fa;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}

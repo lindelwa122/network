@@ -1,4 +1,5 @@
 {% extends "network/layout.html" %}
+{% load network_extras %}
 
 {% block body %}
 
@@ -6,12 +7,29 @@
         <h1>All Posts</h1>
         <div class="row">
             {% for post in all_posts %}
+                <input type="hidden" value="{{ post.id }}" />
                 <div class="wrapper">
                     <div class="header"><strong>{{ post.user }}</strong></div>
                     <div class="main-info">{{ post.content }}</div>
                     <div class="extra-info">
                         <div>{{ post.timestamp }}</div>
-                        <div>{{ post.likes }}</div>
+                        {% if user.is_authenticated %}
+                            {% if user.username|liked:post.id %}
+                                <div class="likes-wrapper">
+                                    <i class="bi bi-heart-fill align-middle" data-post_id="{{ post.id }}"></i>
+                                    <span class="align-middle">{{ post.likes }}</span>
+                                </div>
+                            {% else %}
+                                <div class="likes-wrapper">
+                                    <i class="bi bi-heart align-middle" data-post_id="{{ post.id }}"></i>
+                                    <span class="align-middle">{{ post.likes }}</span>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                        <div class="likes-wrapper">
+                            <div>{{ post.likes }}</div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
@@ -25,128 +43,46 @@
 {% endblock %}
 
 {% block script %}
-<script type="text/babel">
-
-    document.querySelector("#new-post-link").onclick = () => {
-        clear();
-        ReactDOM.render(<NewPost />, document.querySelector("#new-post-view"));
+<script>
+    document.onclick = event => {
+        const target = event.target;
+        if (target.classList[1] === "bi-heart") {
+            postLikes(target, "upvote", target.dataset.post_id);
+        }
+        else if (target.classList[1] === "bi-heart-fill") {
+            postLikes(target, "downvote", target.dataset.post_id);
+        }
     }
 
-    document.querySelector("#all-posts-link").onclick = () => {
-        clear();
-        ReactDOM.render(<AllPosts />, document.querySelector("#posts-view"));
-    }
+    function postLikes(target, action, post_id) {
+        const aj = new XMLHttpRequest;
 
-    function AllPosts() {
-        fetch("/posts/all")
-        .then(response => response.json())
-        .then(data => {
-            data.data.forEach(post => {
-                const wrapper = document.createElement("div");
-                wrapper.classList = "wrapper";
-                const header = document.createElement('div');
-                header.innerHTML = `<div><strong>${post.username}</strong></div>`
-                const mainInfo = document.createElement("div");
-                mainInfo.className = "main-info";
-                mainInfo.textContent = post.content;
-                const extraInfo = document.createElement("div");
-                extraInfo.className = "extra-info";
-                extraInfo.innerHTML = `<div><i>${post.timestamp}</i></div><div>${post.likes}</div>`;
-                wrapper.append(header);
-                wrapper.append(mainInfo);
-                wrapper.append(extraInfo);
-                document.querySelector(".row").append(wrapper);
-            });
-        });
+        aj.onreadystatechange = () => {
+            if (aj.readyState === 4 && aj.status === 200) {
+                if (action === "upvote") {
+                    target.id = "liked";
+                    target.classList = "bi bi-heart-fill";
+                    target.nextElementSibling.innerText++;
+                }
+                else {
+                    target.id = "not-liked";
+                    target.classList = "bi bi-heart";
+                    target.nextElementSibling.innerText--;
+                }
+            }
+            else if (aj.readyState === 4 && aj.status !== 200) {
+                alert("Server couldn't process your request. Please try again later.");
+            }
+        }
 
-        history.pushState({}, "", "/posts/all")
-
-        return (
-            <div className="container">
-                <h1>All Posts</h1>
-                <div className="row"></div>
-            </div>
-        )
-    }
-
-    function clear() {
-        document.querySelectorAll(".view").forEach(view => {
-            ReactDOM.unmountComponentAtNode(view);
+        data = JSON.stringify({
+            "action": action
         })
+
+        aj.open("POST", `/post/like/${post_id}`, true);
+        aj.setRequestHeader("Data-type", "json");
+        aj.setRequestHeader("Content-type", "application/json");
+        aj.send(data);
     }
-
-    function NewPost() {
-
-        const [charCount, setCharCount] = React.useState(0);
-
-        function updateCount(event) {
-            setCharCount(document.querySelector("textarea").value.length);
-        }
-
-        function postText() {
-            
-            const aj = new XMLHttpRequest;
-
-            aj.onreadystatechange = () => {
-                if (aj.readyState == 4 && aj.status != 200) {
-                    const error = document.createElement("div");
-                    error.classList = "alert alert-danger alert-dismissible fade show";
-                    error.role = "alert";
-                    const btn = "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-                    error.innerHTML = `<strong>Something went wrong!</strong>${btn}`;
-                    document.querySelector(".container").append(error);
-                }
-                else if (aj.readyState == 4 && aj.status == 200) {
-                    const success = document.createElement("div");
-                    success.classList = "alert alert-success alert-dismissible fade show";
-                    success.role = "alert";
-                    const btn = "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-                    success.innerHTML = `<strong>Posted successfully!</strong>${btn}`;
-                    document.querySelector(".container").append(success);
-                    document.querySelector("textarea").value = "";
-                    updateCount();
-                }
-            }
-
-            const data = JSON.stringify({
-               "post": document.querySelector("textarea").value 
-            });
-
-            aj.open("POST", "/post/new", true);
-            aj.setRequestHeader("Data-type", "json");
-            aj.setRequestHeader("Content-type", "application/json");
-            aj.send(data);
-        }
-
-        document.onsubmit = event => {
-            event.preventDefault();
-            if (document.querySelector("textarea").value.length === 0) {
-                document.querySelector("textarea").placeholder = "What's on your mind? (POST MUST NOT BE EMPTY)";
-            }
-            else {
-                postText();
-            }
-        }
-
-        history.pushState({}, "", "/post/new");
-
-        return (
-            <div className="container">
-                <h1>New Post</h1>
-                <form action="">
-                    <div id="charCount">{charCount} characters.</div>
-                    <div className="mb-3">
-                        <textarea className="form-control" placeholder="What's on your mind?" rows="7" onInput={updateCount}></textarea>
-                    </div>
-                    <div className="mb-3">
-                        <div id="post-btn">
-                            <input type="submit" id="submit" className="btn btn-primary" value="POST" />
-                        </div>
-                    </div>
-                </form>
-            </div>
-        )
-    }
-    
 </script>
 {% endblock %}

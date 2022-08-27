@@ -20,3 +20,7 @@ class Post(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user} posted: {self.content}"
+
+class Likes(models.Model):
+    post = models.ForeignKey(Post, models.CASCADE, "post_liked")
+    user = models.ForeignKey(User, models.CASCADE, "liker")

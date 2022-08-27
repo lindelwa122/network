@@ -21,5 +21,19 @@
 .extra-info {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: small;
+}
+
+.bi {
+    margin-right: 2px;
+    color: red;
+}
+
+.bi:hover {
+    cursor: pointer;
+}
+
+.likes-wrapper {
+    font-size: large;
 }

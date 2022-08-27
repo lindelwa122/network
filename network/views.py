@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import User
+from .models import *
 from .forms import *
 
 
@@ -78,3 +78,24 @@ def post(request):
         post.save()
 
         return JsonResponse({"message": "Success"}, status=200)
+
+
+@csrf_exempt
+@login_required(login_url="/login")
+def likes(request, post_id):
+    data = json.loads(request.body)
+    post = Post.objects.get(pk=post_id)
+
+    if data.get("action", "") == "upvote":
+        upvote = Likes(post=post, user=request.user)
+        upvote.save()
+        post.likes += 1
+        post.save()
+
+    else:
+        downvote = Likes.objects.get(post=post, user=request.user)
+        downvote.delete()
+        post.likes -= 1
+        post.save()
+
+    return JsonResponse({"message": "success"}, status=200)

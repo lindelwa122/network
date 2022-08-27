@@ -27,3 +27,7 @@ class Connections(models.Model):
 
     def __str__(self) -> str:
          return f"{self.follower} follows {self.user}"
+
+class Likes(models.Model):
+    post = models.ForeignKey(Post, models.CASCADE, "post_liked")
+    user = models.ForeignKey(User, models.CASCADE, "liker")

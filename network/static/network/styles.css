@@ -21,9 +21,11 @@
 .extra-info {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: small;
 }
 
+<<<<<<< HEAD
 div#profile {
     justify-content: space-between;
 }
@@ -42,4 +44,17 @@ div#profile .btn {
     background-color: #faf9fa;
     border-radius: 5px;
     margin-bottom: 10px;
+}
+
+.bi {
+    margin-right: 2px;
+    color: red;
+}
+
+.bi:hover {
+    cursor: pointer;
+}
+
+.likes-wrapper {
+    font-size: large;
 }

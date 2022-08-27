@@ -12,7 +12,9 @@ from .forms import *
 
 
 def index(request):
-    return render(request, "network/index.html")
+    return render(request, "network/index.html", {
+        "all_posts": Post.objects.order_by("timestamp").all()
+    })
 
 
 def login_view(request):
@@ -77,19 +79,23 @@ def post(request):
         return JsonResponse({"message": "Success"}, status=200)
 
 
-def posts(request):
-    if request.method == "GET":
-        all_posts = list(Post.objects.order_by("timestamp").all().values())
+@csrf_exempt
+@login_required(login_url="/login")
+def likes(request, post_id):
+    data = json.loads(request.body)
+    post = Post.objects.get(pk=post_id)
 
-        # k = all_posts["data"]
+    if data.get("action", "") == "upvote":
+        upvote = Likes(post=post, user=request.user)
+        upvote.save()
+        post.likes += 1
+        post.save()
 
-        for e in all_posts:
-            e["username"] = User.objects.get(id=e["user_id"]).username
-        
-        return JsonResponse({
-            "data": all_posts
-        })
-
+    else:
+        downvote = Likes.objects.get(post=post, user=request.user)
+        downvote.delete()
+        post.likes -= 1
+        post.save()
 
 @csrf_exempt
 def profile(request, username):

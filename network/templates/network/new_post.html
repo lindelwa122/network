@@ -6,7 +6,11 @@
     <form action="">
         <div id="charCount">0 characters</div>
         <div class="mb-3">
-            <textarea class="form-control" placeholder="What's on your mind?" rows="7"></textarea>
+            {% if content %}
+                <textarea class="form-control" id="edit" placeholder="What's on your mind?" rows="7" data-id="{{ post_id }}" autofocus>{{ content }}</textarea>
+            {% else %}
+                <textarea class="form-control" placeholder="What's on your mind?" rows="7" autofocus></textarea>
+            {% endif %}
         </div>
         <div class="mb-3">
             <div id="post-btn">
@@ -22,9 +26,12 @@
     
     document.addEventListener("DOMContentLoaded", () => {
         const textarea = document.querySelector("textarea");
+        const charCount = document.querySelector("#charCount");
+
+        charCount.textContent = `${textarea.value.length} characters`
 
         textarea.oninput = () => {
-            document.querySelector("#charCount").textContent = `${textarea.value.length} characters`
+            charCount.textContent = `${textarea.value.length} characters`
        }
 
        document.querySelector("form").onsubmit = event => {
@@ -41,6 +48,7 @@
                         result.classList = "alert alert-success alert-dismissible fade show";
                         result.innerHTML = `<strong>Posted successfully!</strong>${btn}`;
                         textarea.value = "";
+                        charCount.textContent = "0 characters"
                     }
                     else if (aj.readyState === 4 && aj.status !== 200) {
                         result.classList = "alert alert-danger alert-dismissible fade show";
@@ -52,7 +60,13 @@
                     "post": document.querySelector("textarea").value 
                 });
 
-                aj.open("POST", "/new", true);
+                if (textarea.id === "edit") {
+                    aj.open("POST", `/post/edit/${textarea.dataset.id}`, true);
+                    textarea.id = "";
+                }
+                else {
+                    aj.open("POST", "/post/new", true);
+                }
                 aj.setRequestHeader("Data-type", "json");
                 aj.setRequestHeader("Content-type", "application/json");
                 aj.send(data);

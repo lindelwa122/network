@@ -13,7 +13,7 @@ from .forms import *
 
 def index(request):
     return render(request, "network/index.html", {
-        "all_posts": Post.objects.order_by("timestamp").all()
+        "all_posts": Post.objects.order_by("-timestamp").all()
     })
 
 
@@ -78,6 +78,8 @@ def post(request):
 
         return JsonResponse({"message": "Success"}, status=200)
 
+    return render(request, "network/new_post.html")
+
 
 @csrf_exempt
 @login_required(login_url="/login")
@@ -96,6 +98,8 @@ def likes(request, post_id):
         downvote.delete()
         post.likes -= 1
         post.save()
+
+    return JsonResponse({"message": "success"}, status=200)    
 
 @csrf_exempt
 def profile(request, username):
@@ -131,3 +135,25 @@ def profile(request, username):
             con.delete()
 
         return JsonResponse({"message": "success"}, status=200)
+
+
+@csrf_exempt
+@login_required(login_url="/login")
+def edit(request, post_id):
+    post = Post.objects.get(pk=post_id)
+
+    if request.method == "POST":
+        data = json.loads(request.body)
+        post.content = data.get("post", "")
+        post.save()
+
+        return JsonResponse({"message": "success"}, status=200)
+        
+    else:
+        if request.user != post.user:
+            return HttpResponse("<h1>You are not authorized to open this page.</h1>")
+
+        return render(request, "network/new_post.html", {
+            "content": post.content,
+            "post_id": post_id
+        })

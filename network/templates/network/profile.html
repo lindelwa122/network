@@ -1,4 +1,6 @@
 {% extends "network/layout.html" %}
+{% load network_extras %}
+{% load static %}
 
 {% block body %}
 <div class="container">
@@ -35,72 +37,48 @@
     <h3>Posts</h3>
     <div id="posts">
         {% for post in posts %}
-            {{ post }}
+            <div class="wrapper">
+                <div class="header nav-item">
+                    <div>
+                        <strong>
+                            <a class="nav-link" href="{% url 'profile' post.user %}">{{ post.user }}</a>
+                        </strong>
+                    </div>
+                    <div>
+                        {% if user.is_authenticated and user == post.user %}
+                            <div class="nav-item">
+                                <a href="#" class="nav-link" id="edit">Edit</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="main-info">{{ post.content }}</div>
+                <div class="extra-info">
+                    <div>{{ post.timestamp }}</div>
+                    {% if user.is_authenticated %}
+                        {% if user.username|liked:post.id %}
+                            <div class="likes-wrapper">
+                                <i class="bi bi-heart-fill align-middle" data-post_id="{{ post.id }}"></i>
+                                <span class="align-middle">{{ post.likes }}</span>
+                            </div>
+                        {% else %}
+                            <div class="likes-wrapper">
+                                <i class="bi bi-heart align-middle" data-post_id="{{ post.id }}"></i>
+                                <span class="align-middle">{{ post.likes }}</span>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                    <div class="likes-wrapper">
+                        <div>{{ post.likes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         {% endfor %}
     </div>
 </div>
 {% endblock %}
 
 {% block script %}
-<script>
-    document.onclick = event => {
-        if (event.target.id === "follow") {
-            follows("follow");
-        }
-        else if (event.target.id === "unfollow") {
-            follows("unfollow");
-        }
-    }
-
-    function follows(method) {
-        const aj = new XMLHttpRequest;
-        const btn = document.querySelector(`#${method}`);
-
-        aj.onreadystatechange = () => {
-            if (aj.readyState === 4 && aj.status === 200) {
-                btn.innerText = method === "follow" ? "Following" : "Follow";
-                btn.classList = method === "follow" ? "btn btn-secondary" : "btn btn-primary";
-                btn.id = method === "follow" ? "unfollow" : "follow";
-
-                const followersCount = document.querySelector("#followers-count");
-                const wording = document.querySelector("#wording");
-                if (method === "follow") {
-                    followersCount.innerText++;
-                    if (followersCount.innerText == 1) {
-                        wording.innerText = " Follower";
-                    }
-                    else {
-                        wording.innerText = " Followers";
-                    }
-                }
-                else {
-                    followersCount.innerText--;
-                    if (followersCount.innerText == 1) {
-                        wording.innerText = " Follower";
-                    }
-                    else {
-                        wording.innerText = " Followers";
-                    }
-                }
-            }
-            else if (aj.readyState === 4 && aj.status !== 200) {
-                const error = document.createElement("div");
-                error.classList = "alert alert-danger alert-dismissible fade show";
-                error.role = "alert";
-                const btn = "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>";
-                error.innerHTML = `<strong>Server couldn't process your request. Please try again later!</strong>${btn}`;
-                document.querySelector(".row").append(error);
-            }
-        }
-
-        data = JSON.stringify({
-            "data": method === "follow" ? "follow" : "unfollow"
-        });
-
-        aj.open("PUT", `/${document.querySelector("#username").innerText}`, true);
-        aj.setRequestHeader("Data-type", "json");
-        aj.setRequestHeader("Content-type", "application/json");
-        aj.send(data);
-    }
-</script>
+<script src="{% static 'network/posts.js' %}"></script>
 {% endblock %}

@@ -1,5 +1,6 @@
 {% extends "network/layout.html" %}
 {% load network_extras %}
+{% load static %}
 
 {% block body %}
 
@@ -7,9 +8,21 @@
         <h1>All Posts</h1>
         <div class="row">
             {% for post in all_posts %}
-                <input type="hidden" value="{{ post.id }}" />
                 <div class="wrapper">
-                    <div class="header"><strong>{{ post.user }}</strong></div>
+                    <div class="header nav-item">
+                        <div>
+                            <strong>
+                                <a class="nav-link" href="{% url 'profile' post.user %}">{{ post.user }}</a>
+                            </strong>
+                        </div>
+                        <div>
+                            {% if user.is_authenticated and user == post.user %}
+                                <div class="nav-item">
+                                    <a href="{% url 'edit' post.id %}" class="nav-link" id="edit">Edit</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
                     <div class="main-info">{{ post.content }}</div>
                     <div class="extra-info">
                         <div>{{ post.timestamp }}</div>
@@ -43,46 +56,5 @@
 {% endblock %}
 
 {% block script %}
-<script>
-    document.onclick = event => {
-        const target = event.target;
-        if (target.classList[1] === "bi-heart") {
-            postLikes(target, "upvote", target.dataset.post_id);
-        }
-        else if (target.classList[1] === "bi-heart-fill") {
-            postLikes(target, "downvote", target.dataset.post_id);
-        }
-    }
-
-    function postLikes(target, action, post_id) {
-        const aj = new XMLHttpRequest;
-
-        aj.onreadystatechange = () => {
-            if (aj.readyState === 4 && aj.status === 200) {
-                if (action === "upvote") {
-                    target.id = "liked";
-                    target.classList = "bi bi-heart-fill";
-                    target.nextElementSibling.innerText++;
-                }
-                else {
-                    target.id = "not-liked";
-                    target.classList = "bi bi-heart";
-                    target.nextElementSibling.innerText--;
-                }
-            }
-            else if (aj.readyState === 4 && aj.status !== 200) {
-                alert("Server couldn't process your request. Please try again later.");
-            }
-        }
-
-        data = JSON.stringify({
-            "action": action
-        })
-
-        aj.open("POST", `/post/like/${post_id}`, true);
-        aj.setRequestHeader("Data-type", "json");
-        aj.setRequestHeader("Content-type", "application/json");
-        aj.send(data);
-    }
-</script>
+<script src="{% static 'network/posts.js' %}"></script>
 {% endblock %}

@@ -6,14 +6,20 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
 
 from .models import *
 from .forms import *
 
 
 def index(request):
+    post_list = Post.objects.order_by("-timestamp").all()
+    paginator = Paginator(post_list, 10)
+    
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
     return render(request, "network/index.html", {
-        "all_posts": Post.objects.order_by("-timestamp").all()
+        "all_posts": page_obj
     })
 
 
@@ -114,7 +120,10 @@ def profile(request, username):
             f = Connections.objects.filter(user=user, follower=request.user)
 
         posts = Post.objects.filter(user=user)
+        paginator = Paginator(posts, 10)
 
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
         return render(request, "network/profile.html", {
             "username": username,
             "followers": followers,
@@ -122,7 +131,7 @@ def profile(request, username):
             "user_profile": request.user == user,
             "follows_you": len(con) == 1 if request.user.is_authenticated else False,
             "already_following": len(f) == 1 if request.user.is_authenticated else False,
-            "posts": posts
+            "posts": page_obj
         })
 
     else:
@@ -168,7 +177,13 @@ def following(request):
         for post in user_posts:
             posts.append(post)
 
+    ordered_posts = sorted(posts, key=lambda d: d.timestamp, reverse=True)
+ 
+    paginator = Paginator(ordered_posts, 10)
+
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
     return render(request, "network/index.html", {
-        "all_posts": posts,
+        "all_posts": page_obj,
         "followers": True
     })

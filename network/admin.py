@@ -5,3 +5,5 @@ from .models import *
 # Register your models here.
 admin.site.register(User)
 admin.site.register(Post)
+admin.site.register(Connections)
+admin.site.register(Likes)

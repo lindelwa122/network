@@ -9,4 +9,9 @@ def liked(username, post_id):
     post = Post.objects.get(pk=post_id)
     return Likes.objects.filter(post=post, user=user)
 
+@register.filter(name="minus")
+def minus(value1, value2):
+    return value1 - value2
+
 register.filter("liked", liked)
+register.filter("minus", minus)

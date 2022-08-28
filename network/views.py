@@ -157,3 +157,18 @@ def edit(request, post_id):
             "content": post.content,
             "post_id": post_id
         })
+
+@login_required(login_url="/login")
+def following(request):
+    connections = Connections.objects.filter(follower=request.user)
+    posts = []
+
+    for con in connections:
+        user_posts = Post.objects.filter(user=con.user)
+        for post in user_posts:
+            posts.append(post)
+
+    return render(request, "network/index.html", {
+        "all_posts": posts,
+        "followers": True
+    })

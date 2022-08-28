@@ -5,7 +5,11 @@
 {% block body %}
 
     <div class="container">
-        <h1>All Posts</h1>
+        {% if followers %}
+            <h1>Followers</h1>
+        {% else %}
+            <h1>All Posts</h1>
+        {% endif %}
         <div class="row">
             {% for post in all_posts %}
                 <div class="wrapper">
